@@ -1,8 +1,6 @@
-S,A,B
-a,b,c,d
+S,A
+a,b,c
 S
 S->aA
-S->aB
 A->bA
 A->c
-B->d

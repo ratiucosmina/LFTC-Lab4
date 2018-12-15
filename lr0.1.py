@@ -115,8 +115,7 @@ class LR0:
                     s += " with symbol " + transition.symbol + " to " + str(transition.next)
                 elif transition.name == "reduce":
                     s += " with production " + str(transition.productionNumber)
-                print(s)
-
+                # print(s)
     #salvez tranzitiile in fisier ca sa nu fac prostia asta de fiecare data
     def save_transitions_to_file(self, file):
         f = open(file, "w")
@@ -130,19 +129,40 @@ class LR0:
                     f.write(str(key) + " " + action.symbol + " " + str(action.next) + "\n")
         f.close()
 
-    #ToDo citeste tranzitiile din fisier
-    #vezi mai sus cum le scriu
-    #self.transitions e un dictionar, cheia e practic state-ul de pe linie (id-ul state-ului, deci 0,1 etc)
-    #valoarea e o lista de actions
-    #action poate fi AcceptAction care primeste doar starea din cheie
-    #ReduceAction care primeste valoarea din cheie si production number care e schis in fisier
-    #ShiftAction care primeste cheia, next_state si symbol, scrise in fisier
     def read_transitions_from_file(self, file):
-        pass
+        with open(file, "r") as f:
+            transitions = f.read().split('\n')
+            transitions = [trans.split(' ') for trans in transitions if trans != '']
+            for trans in transitions:
+                self.transitions[int(trans[0])] = []
+                if len(trans) == 2:
+                    if trans[1] == 'acc':
+                        self.transitions[int(trans[0])].append(AcceptAction(int(trans[0])))
+                    else:
+                        self.transitions[int(trans[0])].append(ReduceAction(int(trans[0]), int(trans[1])))
+                elif len(trans) == 3:
+                    self.transitions[int(trans[0])].append(ShiftAction(int(trans[0]), int(trans[2]), trans[1]))
+        # print([str(trans)+" -> "+str([str(action) for action in self.transitions[trans]]) for trans in self.transitions])
+
+    def find_production(self, prod_nr):
+        prod = [(x, tuple[0]) for x in self.grammar.P for tuple in self.grammar.P[x] if tuple[1] == prod_nr]
+        return prod[0]
+
+    def find_action_with_symbol(self, actions, symbol):
+        for action in actions:
+            if action.symbol == symbol:
+                return action
+        return -1
+
+    def get_reverse_index(self, list, elem):
+        for i in range(len(list)-1,-1,-1):
+            if list[i] == elem:
+                return i
+        return -1
 
     def check_input(self, sequence):
         working = [0]
-        input = [sequence]
+        input = sequence
         output = []
         accept = False
         error = False
@@ -163,33 +183,47 @@ class LR0:
                 break
 
             if transitions[0].name == "accept":
+                print("accept " + str(head_working))
                 accept = True
                 break
-            if transitions[0].name == "reduce":
-                prodNr = transitions[0].productionNumber
-                # ToDo find production in a separate function
-                #in self.grammar.P am toate productiile, e un dictionar
-                #cheia e left hand side-ul productiei
-                #valoarea e o lista de rhs-uri, fiecare e un tuple (rhs, numarul productiei)
-                #deci daca as avea productia S->aA cu numarul 1, e salvata {'S':[('aA',1)]}
 
-                #ToDo pop from working stack until all rhs is popped
-                #ToDo push lhs in input stack
+            if transitions[0].name == "reduce":
+                print("reduce "+str(head_working))
+                prodNr = transitions[0].productionNumber
+                production = self.find_production(prodNr)
+                lhs, rhs = production[0], production[1]
+
+                index_rhs = self.get_reverse_index(working, rhs[0])
+                if index_rhs == -1:
+                    error = True
+                    break
+                working = working[:index_rhs]+[lhs]
+                action = self.find_action_with_symbol(self.transitions[working[-2]],lhs)
+                if action == -1:
+                    error = True
+                    break
+                working.append(action.next)
 
                 output=[prodNr]+output
-                pass
 
             if transitions[0].name == "shift":
-                #ToDo find action with symbol equal to head_input
-                # ToDo if not found, set error to true
-                # ToDo if found, push head_input to working stack, push next_state index to working
-                pass
+                if head_input != "eps":
+                    input = input[1:]
+                action = self.find_action_with_symbol(transitions, head_input)
+                if action == -1:
+                    error = True
+                    break
+                print("shift "+str(head_working)+" with "+ head_input + " to "+str(action.next))
+                working += [head_input, action.next]
 
-        # ToDo if accept return output
-        # ToDo error raise exception
-            #message of the exception contains input stack or something
+        if accept:
+            return list(map(lambda x: x+1, output))
+        elif error:
+            print("Grammar doesn't accept the given sequence!")
 
 
 alg = LR0("grammar_simple.txt")
 alg.cannonical_collection()
 alg.save_transitions_to_file("transitions.txt")
+print("Output:",alg.check_input(["a","b","b","c"]))
+# alg.read_transitions_from_file("transitions.txt")
