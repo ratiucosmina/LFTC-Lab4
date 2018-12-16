@@ -8,11 +8,14 @@ STconst = []
 def read_codification_table():
     codificationTable = {}
     f = open("CodificationTable.txt", "r")
-    line = f.readline()
+    line = f.readline().strip("\n")
     while line != "":
-        words = line.split("\t")
+        words = line.split("  ")
+        if words[1][0]==' ':
+            words[1].strip(" ")
+            words[0]=' '
         codificationTable[words[0]] = int(words[1])
-        line = f.readline()
+        line = f.readline().strip("\n")
     return codificationTable
 
 
@@ -20,9 +23,9 @@ def identify_special_characters(codificationTable):
     vector = []
     for key in codificationTable.keys():
         vector.append(key)
-    reservedWords = vector[2:11]
-    separators = vector[11:20]
-    operators = vector[20:]
+    reservedWords = vector[2:4]
+    separators = vector[5:]
+    operators = vector[4:5]
 
     return reservedWords, separators, operators
 

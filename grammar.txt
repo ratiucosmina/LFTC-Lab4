@@ -1,32 +1,7 @@
-program -> declarationList statement
-declarationList -> 5 19 type | type
-type -> 2 19 variable 17 | 3 19 variable 17 | struct id variable ; | arrayDeclaration variable ; | 
-variable -> id | id,variable
-arrayDeclaration -> int [ integer] | char [ integer] | struct id [ integer] 
-statement -> singlestatement | { composedstatement }
-composedstatement -> singlestatement | singlestatement composedstatement
-singlestatement -> ifstmt | assignstmt| whilestmt | readstmt | writestmt
-assignstmt-> id = rhs;
-rhs -> id | constant| expression
-expression -> term operator term | expression operator term
-term -> id | constant| ( expression )
-ifstmt -> if (   condition ) statement elsestmt
-elsestmt -> else statement | 
-condition -> rhs  relation rhs
-whilestmt -> while (  condition ) statement
-readstmt -> read( id ) ;
-writestmt -> write ( idOrConst );
-idOrConst -> id | constant
-constant -> integer | chartype
-id -> letter letterOrDigit | structure
-letterOrDigit -> letterletterOrDigit | digitletterOrDigit | _ letterOrDigit | 
-letter -> a | b | c | … | z | A | B | C | … | Z 
-digit -> 0 | nonZeroDigit
-integer -> - nonZeroDigit digits | 0
-digits -> digit digits | 
-nonZeroDigit -> 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
-chartype ->  ‘character‘
-character -> letter | digit | 
-structure -> struct { type } id ; 
-relation -> <= | >= | < | > | == | !=
-operator = + | - | * | / | %
+S,A,B,C
+0,1,2,3,4,5,6,7,8,9
+S
+S->AB
+A->270816
+B->0816|37CB|47CB
+C->0915

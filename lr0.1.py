@@ -36,7 +36,8 @@ class LR0:
             symbol = rhs[dot]
 
             for right in self.grammar.get_rhs_for_nonterminal(symbol):
-                result.append([symbol, right[0], 0])
+                if [symbol, right[0], 0] not in result:
+                    result.append([symbol, right[0], 0])
 
         return result
 
@@ -100,6 +101,10 @@ class LR0:
                     self.transitions[i] = [action]
                     continue
 
+                print("state: "+str(state))
+                print("element: "+str(element))
+                print("next state: "+str(next_state))
+                print('\n')
                 self.check_conflicts(action, i, stateNr)
 
                 self.transitions[i].append(action)
@@ -219,11 +224,22 @@ class LR0:
         if accept:
             return list(map(lambda x: x+1, output))
         elif error:
-            print("Grammar doesn't accept the given sequence!")
+            print("Grammar doesn't accept the given sequence!" + str(output))
 
 
-alg = LR0("grammar_simple.txt")
+alg = LR0("grammar.txt")
+print(alg.grammar.N)
+print(alg.grammar.Sigma)
+print(alg.grammar.P)
 alg.cannonical_collection()
 alg.save_transitions_to_file("transitions.txt")
-print("Output:",alg.check_input(["a","b","b","c"]))
+pif_file=open("PIF.txt","r")
+pif=[]
+line=pif_file.readline().strip("\n")
+while line!="":
+    pif.append(line.split(" ")[0])
+    line = pif_file.readline().strip("\n")
+print(pif)
+print("Output:",alg.check_input(pif))
+# print("Output:",alg.check_input(["a","b","b","c"]))
 # alg.read_transitions_from_file("transitions.txt")
