@@ -1,6 +1,8 @@
 from copy import deepcopy
-
+from functools import reduce
+import texttable as tt
 from actions import AcceptAction, ReduceAction, ShiftAction
+from lexical_scanning import LexicalAnalysis
 from regular_grammar import Grammar
 
 
@@ -226,20 +228,46 @@ class LR0:
         elif error:
             print("Grammar doesn't accept the given sequence!" + str(output))
 
+    def output_as_table(self, outputSeq):
+        tab = tt.Texttable()
+        headings = ['Index', 'Symbol', 'Parent', 'Sibling']
+        tab.header(headings)
+
+        parents = {}
+        i=1
+
+        tab.add_row([i,self.grammar.S,'-','-'])
+        parents[self.grammar.S] = i
+        for prodNr in outputSeq:
+            i+=1
+            prod = self.find_production(prodNr-1)
+            lhs, rhs = prod[0], prod[1]
+            tab.add_row([i, rhs[0], parents[lhs], '-'])
+            if rhs[0] in self.grammar.N and rhs[0] not in parents:
+                parents[rhs[0]] = i
+            for elem in rhs[1:]:
+                i+=1
+                tab.add_row([i, elem, parents[lhs], i-1])
+                if elem in self.grammar.N and elem not in parents:
+                    parents[elem] = i
+
+        s = tab.draw()
+        print(s)
+
 
 alg = LR0("grammar.txt")
-print(alg.grammar.N)
-print(alg.grammar.Sigma)
-print(alg.grammar.P)
+# print(alg.grammar.N)
+# print(alg.grammar.Sigma)
+# print(alg.grammar.P)
 alg.cannonical_collection()
 alg.save_transitions_to_file("transitions.txt")
-pif_file=open("PIF.txt","r")
-pif=[]
-line=pif_file.readline().strip("\n")
-while line!="":
-    pif.append(line.split(" ")[0])
-    line = pif_file.readline().strip("\n")
-print(pif)
-print("Output:",alg.check_input(pif))
+
+lexicAnalysis = LexicalAnalysis()
+lexicAnalysis.perform_lexical_analysis()
+pif = [str(x[0]) for x in lexicAnalysis.PIF]
+outputSeq = alg.check_input(pif)
+print("Output:",outputSeq)
+alg.output_as_table(outputSeq)
+
 # print("Output:",alg.check_input(["a","b","b","c"]))
 # alg.read_transitions_from_file("transitions.txt")
